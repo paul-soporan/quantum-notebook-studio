@@ -3,6 +3,5 @@
   "private": true,
   "workspaces": [
     "frontend"
-  ],
-  "packageManager": "yarn@4.16.0"
+  ]
 }
