@@ -18,7 +18,8 @@ ENV UV_PROJECT_ENVIRONMENT="/app/.venv"
 ENV PATH="/app/.venv/bin:$PATH"
 
 # 1. Copy ONLY dependency files first to leverage Docker caching
-COPY package.json yarn.lock .yarnrc.yml .yarn ./
+COPY package.json yarn.lock .yarnrc.yml ./
+COPY .yarn/ .yarn/
 COPY frontend/package.json frontend/
 COPY pyproject.toml uv.lock .python-version ./
 
