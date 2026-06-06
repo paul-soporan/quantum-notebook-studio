@@ -1,0 +1,7 @@
+{
+  "name": "qt-monorepo",
+  "private": true,
+  "workspaces": [
+    "frontend"
+  ]
+}

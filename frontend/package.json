@@ -1,0 +1,38 @@
+{
+  "name": "frontend",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev --webpack",
+    "build": "run sync:notebooks && next build --webpack",
+    "build:frontend": "run build",
+    "start": "next start",
+    "lint": "eslint",
+    "sync:notebooks": "rm -rf public/notebooks && cp -r ../notebooks public/notebooks"
+  },
+  "dependencies": {
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.1",
+    "@monaco-editor/react": "^4.7.0",
+    "@mui/icons-material": "^9.0.1",
+    "@mui/material": "^9.0.1",
+    "@mui/material-nextjs": "^9.0.1",
+    "katex": "^0.17.0",
+    "monaco-editor": "^0.55.1",
+    "next": "16.2.7",
+    "react": "19.2.4",
+    "react-dom": "19.2.4",
+    "react-markdown": "^10.1.0",
+    "rehype-katex": "^7.0.1",
+    "remark-gfm": "^4.0.1",
+    "remark-math": "^6.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "16.2.7",
+    "typescript": "^5"
+  }
+}
