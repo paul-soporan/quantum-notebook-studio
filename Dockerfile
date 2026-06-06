@@ -1,4 +1,4 @@
-# Use a base image that has Node.js
+# Use a base image that has Node.js (this image already contains a user named 'node' with UID 1000)
 FROM node:20-bullseye
 
 # Install Python 3
@@ -9,26 +9,23 @@ RUN apt-get update && \
 # Install `uv`
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 
-# Set up a new user named "user" with user ID 1000 (Required by Hugging Face)
-RUN useradd -m -u 1000 user
-
 # Set environment variables
 ENV UV_PROJECT_ENVIRONMENT="/app/.venv"
 ENV PATH="/app/.venv/bin:$PATH"
 ENV QT_NOTEBOOK_PYTHON="/app/.venv/bin/python"
 
-# Set up the working directory and assign ownership to the new user
+# Set up the working directory and assign ownership to the existing 'node' user
 WORKDIR /app
-RUN chown -R user:user /app
+RUN chown -R node:node /app
 
-# Switch to the non-root user
-USER user
+# Switch to the built-in non-root user (UID 1000)
+USER node
 
 # 1. Copy ONLY dependency files first
-COPY --chown=user:user package.json yarn.lock .yarnrc.yml ./
-COPY --chown=user:user .yarn/ .yarn/
-COPY --chown=user:user frontend/package.json frontend/
-COPY --chown=user:user pyproject.toml uv.lock .python-version ./
+COPY --chown=node:node package.json yarn.lock .yarnrc.yml ./
+COPY --chown=node:node .yarn/ .yarn/
+COPY --chown=node:node frontend/package.json frontend/
+COPY --chown=node:node pyproject.toml uv.lock .python-version ./
 
 # 2. Install Node dependencies
 RUN yarn install --immutable
@@ -37,7 +34,7 @@ RUN yarn install --immutable
 RUN uv sync --frozen --no-dev --no-install-project
 
 # 4. Copy the rest of the application code
-COPY --chown=user:user . .
+COPY --chown=node:node . .
 
 # 5. Sync uv again to link the project files
 RUN uv sync --frozen --no-dev
