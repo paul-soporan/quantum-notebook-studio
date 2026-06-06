@@ -1,4 +1,4 @@
-import { spawn } from "node:child_process";
+import { spawn, spawnSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
 
@@ -17,25 +17,43 @@ interface ExecuteRequestBody {
 }
 
 function resolvePythonExecutable(): string {
+  const isWindows = process.platform === "win32";
+  const projectRoot = path.resolve(process.cwd(), "..");
+  const venvExecutable = isWindows ? "Scripts/python.exe" : "bin/python";
   const candidates = [
     process.env.QT_NOTEBOOK_PYTHON,
-    path.resolve(process.cwd(), "../.venv/bin/python"),
-    path.resolve(process.cwd(), "../../.venv/bin/python"),
+    process.env.VIRTUAL_ENV ? path.join(process.env.VIRTUAL_ENV, venvExecutable) : undefined,
+    path.join(projectRoot, ".venv", venvExecutable),
+    isWindows ? undefined : path.join(projectRoot, ".venv", "bin/python3"),
     "python3",
     "python",
   ].filter((candidate): candidate is string => Boolean(candidate));
 
   for (const candidate of candidates) {
-    if (!candidate.includes(path.sep)) {
-      return candidate;
+    const resolvedCandidate = candidate.includes(path.sep) || candidate.includes("/")
+      ? path.resolve(process.cwd(), candidate)
+      : candidate;
+
+    if (path.isAbsolute(resolvedCandidate)) {
+      if (fs.existsSync(resolvedCandidate)) {
+        return resolvedCandidate;
+      }
+
+      continue;
     }
 
-    if (fs.existsSync(candidate)) {
-      return candidate;
+    const probe = spawnSync(resolvedCandidate, ["--version"], {
+      stdio: "ignore",
+    });
+
+    if (!probe.error && probe.status === 0) {
+      return resolvedCandidate;
     }
   }
 
-  return "python3";
+  throw new Error(
+    "Unable to locate a usable Python interpreter. Set QT_NOTEBOOK_PYTHON to the project venv interpreter.",
+  );
 }
 
 async function runExecutor(body: ExecuteRequestBody): Promise<unknown> {

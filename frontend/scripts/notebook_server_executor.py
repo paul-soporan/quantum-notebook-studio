@@ -69,7 +69,7 @@ def get_rich_data(obj: Any) -> Dict[str, Any]:
             buffer = io.BytesIO()
             obj.savefig(buffer, format="png", bbox_inches="tight")
             data = {"text/plain": repr(obj), "image/png": base64.b64encode(buffer.getvalue()).decode("ascii")}
-            
+
             # Close it so collect_matplotlib_outputs doesn't see it
             try:
                 import matplotlib.pyplot as plt
@@ -142,7 +142,7 @@ def execute_source(source: str, env: Dict[str, Any], outputs: List[Dict[str, Any
                 body = parsed.body[:-1]
                 if body:
                     exec(compile(ast.Module(body=body, type_ignores=[]), "<cell>", "exec"), env, env)
-                
+
                 expression = ast.Expression(parsed.body[-1].value)
                 expr_result = eval(compile(expression, "<cell>", "eval"), env, env)
             else:
@@ -237,7 +237,7 @@ def setup_execution_env() -> Dict[str, Any]:
 
 def execute_cell(cells: List[Dict[str, Any]], cell_index: int) -> Dict[str, Any]:
     global _ACTIVE_OUTPUTS
-    
+
     if cell_index < 0 or cell_index >= len(cells):
         return {"status": "error", "executionCount": None, "outputs": [], "errorMessage": "Cell index is out of range."}
 
@@ -248,7 +248,7 @@ def execute_cell(cells: List[Dict[str, Any]], cell_index: int) -> Dict[str, Any]
     env: Dict[str, Any] = {"__name__": "__main__"}
     setup_env = setup_execution_env()
     env.update(setup_env)
-    
+
     execution_count = 0
 
     for index, cell in enumerate(cells):
@@ -262,11 +262,11 @@ def execute_cell(cells: List[Dict[str, Any]], cell_index: int) -> Dict[str, Any]
             continue
 
         execution_count += 1
-        
+
         # Isolation: Use a fresh list for every cell and set it as active
         cell_outputs: List[Dict[str, Any]] = []
         _ACTIVE_OUTPUTS = cell_outputs
-        
+
         result = execute_source(source, env, cell_outputs)
 
         if index < cell_index and result["status"] == "error":
@@ -293,11 +293,11 @@ def execute_cell(cells: List[Dict[str, Any]], cell_index: int) -> Dict[str, Any]
 
 def execute_run_all(cells: List[Dict[str, Any]]) -> Dict[str, Any]:
     global _ACTIVE_OUTPUTS
-    
+
     env: Dict[str, Any] = {"__name__": "__main__"}
     setup_env = setup_execution_env()
     env.update(setup_env)
-    
+
     execution_count = 0
     cell_results: List[Dict[str, Any]] = []
 
@@ -314,7 +314,7 @@ def execute_run_all(cells: List[Dict[str, Any]]) -> Dict[str, Any]:
             continue
 
         execution_count += 1
-        
+
         # Isolation: Use a fresh list for every cell and set it as active
         cell_outputs: List[Dict[str, Any]] = []
         _ACTIVE_OUTPUTS = cell_outputs
@@ -345,13 +345,13 @@ def execute_run_all(cells: List[Dict[str, Any]]) -> Dict[str, Any]:
 
 
 def respond(payload: Dict[str, Any]) -> None:
-    sys.stdout.write(json.dumps(payload))
-    sys.stdout.flush()
+    sys.stdout.buffer.write(json.dumps(payload, ensure_ascii=False).encode("utf-8"))
+    sys.stdout.buffer.flush()
 
 
 def main() -> None:
     try:
-        raw = sys.stdin.read()
+        raw = sys.stdin.buffer.read().decode("utf-8")
         request = json.loads(raw)
     except Exception as error:  # noqa: BLE001
         respond({"ok": False, "error": f"Invalid JSON request: {error}"})
