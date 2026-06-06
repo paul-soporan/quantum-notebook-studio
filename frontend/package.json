@@ -2,13 +2,14 @@
   "name": "frontend",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "scripts": {
     "dev": "next dev --webpack",
-    "build": "run sync:notebooks && next build --webpack",
+    "build": "next build --webpack",
     "build:frontend": "run build",
     "start": "next start",
     "lint": "eslint",
-    "sync:notebooks": "rm -rf public/notebooks && cp -r ../notebooks public/notebooks"
+    "sync:notebooks": "node scripts/sync-notebooks.js"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",
